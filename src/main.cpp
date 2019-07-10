@@ -1,11 +1,20 @@
 #include <Arduino.h>
 #include <UIPEthernet.h>
 #include <PubSubClient.h>
+#include "Ticker.h"
 // #include <Bounce2.h>
 
-#define PIN_RELAY   4
+#define PIN_LIGHT   4
+#define PIN_SIREN   5
 #define PIN_MUTE    2
 
+void blinkOn();
+void blinkOff();
+
+Ticker timerBlink1(blinkOn, 500, 1, MILLIS);
+Ticker timerBlink2(blinkOn, 500, 2, MILLIS);
+Ticker timerBlink3(blinkOn, 500, 3, MILLIS);
+Ticker timerBlinkOff(blinkOff, 250, 1, MILLIS);
 
 EthernetClient ethClient;
 PubSubClient client(ethClient);
@@ -25,6 +34,19 @@ uint32_t alarmActiveDelay = 30000;
 uint32_t alarmPausedDelay = 10000;
 int alarmMaxAttempts = 25;
 int alarmAttempt = 0;
+String sTopic;
+
+
+void blinkOn() {
+    Serial.println("[ BLINK ] Lets blink some leds!");
+    digitalWrite(PIN_LIGHT, HIGH);
+    timerBlinkOff.start();
+}
+
+void blinkOff() {
+    Serial.println("[ BLINK ] Blink light is off.");
+    digitalWrite(PIN_LIGHT, LOW);
+}
 
 void alarmOn() {
     if (!alarmEnabled) {
@@ -32,7 +54,8 @@ void alarmOn() {
         alarmActive = true;
         alarmStarted = millis();
         alarmAttempt = 0;
-        digitalWrite(PIN_RELAY, HIGH);
+        digitalWrite(PIN_LIGHT, HIGH);
+        digitalWrite(PIN_SIREN, HIGH);
         Serial.println("[ ALARM ] Alarm has STARTED!");
         // client.publish("/alarm_siren/state", String(alarmMaxAttempts).c_str());
         client.publish("/alarm_siren/state", "1");
@@ -44,14 +67,15 @@ void alarmOn() {
 
 void alarmOff() {
     alarmEnabled = false;
-    digitalWrite(PIN_RELAY, LOW);
+    digitalWrite(PIN_LIGHT, LOW);
+    digitalWrite(PIN_SIREN, LOW);
     Serial.println("[ ALARM ] Alarm has STOPPED!");
     client.publish("/alarm_siren/state", "0");
 }
 
 
 void callback(char* topic, byte* payload, unsigned int length) {
-    // String sTopic(topic);
+    sTopic = topic;
     Serial.print("[ MQTT ] Message arrived [");
     Serial.print(topic);
     Serial.print("] ");
@@ -83,6 +107,7 @@ void reconnect() {
             client.publish("/alarm_siren/status", "connected");
             // ... and resubscribe
             client.subscribe("/alarm_siren/alarm");
+            client.subscribe("/alarm_siren/blink");
         } else {
             Serial.print("failed, rc=");
             Serial.print(client.state());
@@ -99,10 +124,14 @@ int muteState = HIGH;
 
 
 void setup() {
-    pinMode(PIN_RELAY, OUTPUT);
+    pinMode(PIN_LIGHT, OUTPUT);
+    pinMode(PIN_SIREN, OUTPUT);
     // digitalWrite(PIN_RELAY, HIGH);
     // delay(100);
-    digitalWrite(PIN_RELAY, LOW);
+    digitalWrite(PIN_LIGHT, LOW);
+    digitalWrite(PIN_SIREN, LOW);
+
+    timerBlink3.start();
 
     // pinMode(PIN_MUTE, INPUT_PULLUP);
     // mute.attach(PIN_MUTE);
@@ -132,6 +161,9 @@ void setup() {
 }
 
 void loop() {
+    timerBlink1.update();
+    timerBlink2.update();
+    timerBlink3.update();
     if (!client.connected()) {
         reconnect();
     }
@@ -156,7 +188,7 @@ void loop() {
                 alarmAttempt++;
                 alarmActive = false;
                 alarmPaused = millis();
-                digitalWrite(PIN_RELAY, LOW);
+                digitalWrite(PIN_SIREN, LOW);
                 Serial.print("[ ALARM ] Alarm paused for a while (");
                 Serial.print(alarmAttempt);
                 Serial.println(")");
@@ -168,7 +200,7 @@ void loop() {
             } else if (millis() > alarmPaused + alarmPausedDelay) {
                 alarmActive = true;
                 alarmStarted = millis();
-                digitalWrite(PIN_RELAY, HIGH);
+                digitalWrite(PIN_SIREN, HIGH);
                 Serial.println("[ ALARM ] Alarm active again.");
                 client.publish("/alarm_siren/state", "1");
                 // client.publish("/alarm_siren/state", String(alarmMaxAttempts - alarmAttempt).c_str());
