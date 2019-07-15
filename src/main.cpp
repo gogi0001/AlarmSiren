@@ -75,42 +75,15 @@ void alarmOn3() {
     // Serial.println("SIREN3!");
 }
 
-void blinkOn() {
-
-}
-
-void blinkOff() {
-    
-}
-
 void alarmOn() {
     digitalWrite(PIN_LIGHT, HIGH);
     digitalWrite(PIN_SIREN, HIGH);
     timerAlarmOff.start();
-    // client.publish("/alarm_siren/state", "1");
-
-    // if (!alarmEnabled) {
-    //     alarmEnabled = true;
-    //     alarmActive = true;
-    //     alarmStarted = millis();
-    //     alarmAttempt = 0;
-    //     digitalWrite(PIN_LIGHT, HIGH);
-    //     digitalWrite(PIN_SIREN, HIGH);
-    //     Serial.println(F("[ ALARM ] Alarm has STARTED!"));
-    //     // client.publish("/alarm_siren/state", String(alarmMaxAttempts).c_str());
-    //     client.publish("/alarm_siren/state", "1");
-    // } else {
-    //     Serial.println(F("[ ALARM ] Alarm counter cleaned."));
-    //     alarmAttempt = 0;
-    // }
 }
 
 void alarmOff() {
-    // alarmEnabled = false;
     digitalWrite(PIN_LIGHT, LOW);
     digitalWrite(PIN_SIREN, LOW);
-    // Serial.println(F("[ ALARM ] STOPPED!"));
-    // client.publish("/alarm_siren/state", "0");
 }
 
 
@@ -124,9 +97,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
         if ((char)payload[0] == '1') {
             client.publish("/alarm_siren/state", "1");
             timerAlarmOn3.start();
-            // alarmOn();
         } else {
-            // alarmOff();
             timerAlarmOn3.stop();
             client.publish("/alarm_siren/state", "0");
         }
@@ -140,11 +111,6 @@ void callback(char* topic, byte* payload, unsigned int length) {
             timerBlink3.start();
         }
     }
-    // for (int i = 0; i < length; i++) {
-        // sPayload += (char)payload[i];
-        // Serial.print((char)payload[i]);
-    // }
-    // Serial.print(sPayload);
 }
 
 void reconnect() {
@@ -178,8 +144,6 @@ int muteState = HIGH;
 void setup() {
     pinMode(PIN_LIGHT, OUTPUT);
     pinMode(PIN_SIREN, OUTPUT);
-    // digitalWrite(PIN_RELAY, HIGH);
-    // delay(100);
     digitalWrite(PIN_LIGHT, LOW);
     digitalWrite(PIN_SIREN, LOW);
 
@@ -201,7 +165,6 @@ void setup() {
 
     client.setServer(server, 1883);
     client.setCallback(callback);
-    // timerBlink3.start();
     timerReset.start();
 }
 
@@ -219,42 +182,4 @@ void loop() {
         reconnect();
     }
     client.loop();
-
-    // int muteCurrent = digitalRead(PIN_MUTE);
-    // if ((muteCurrent != muteState) && (millis() > muteLastChanged + 50)) {
-    //     muteLastChanged = millis();
-    //     muteState = muteCurrent;
-    //     Serial.println("[ MUTE ] Button has been pressed!");
-    // }
-
-    // mute.update();
-    // if (mute.fell()) {
-    //     Serial.println("[ MUTE ] Button has been pressed!");
-    // }
-
-
-    // if (alarmEnabled) {
-    //     if (alarmActive) {
-    //         if (millis() > alarmStarted + alarmActiveDelay) {
-    //             alarmAttempt++;
-    //             alarmActive = false;
-    //             alarmPaused = millis();
-    //             digitalWrite(PIN_SIREN, LOW);
-    //             Serial.println(F("[ ALARM ] Alarm PAUSED"));
-    //             client.publish("/alarm_siren/state", "0");
-    //         }
-    //     } else {
-    //         if (alarmAttempt > alarmMaxAttempts) {
-    //             alarmOff();
-    //         } else if (millis() > alarmPaused + alarmPausedDelay) {
-    //             alarmActive = true;
-    //             alarmStarted = millis();
-    //             digitalWrite(PIN_SIREN, HIGH);
-    //             Serial.println(F("[ ALARM ] Alarm active again."));
-    //             client.publish("/alarm_siren/state", "1");
-    //             // client.publish("/alarm_siren/state", String(alarmMaxAttempts - alarmAttempt).c_str());
-    //         }
-    //     }
-    // }
-
 }
