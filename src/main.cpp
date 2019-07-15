@@ -33,13 +33,20 @@ Ticker timerReset(resetFunc, resetDelay, 1, MILLIS);
 
 EthernetClient ethClient;
 PubSubClient client(ethClient);
-IPAddress server(192, 168, 0, 204);
+IPAddress server(172, 17, 2, 172);
+//IPAddress server(192, 168, 0, 204);
 // Bounce mute = Bounce();
 
 // IPAddress ip(192, 168, 0, 66);
 // IPAddress mask(255, 255, 255, 0);
 // IPAddress gw(192, 168, 0, 1);
 // IPAddress dnsserver(192, 168, 0, 1);
+
+void blinkOn();
+void blinkOff();
+
+Ticker timerBlink1(blinkOn, 1, 200, MILLIS);
+Ticker timerBlinkOff(blinkOff, 1, 100, MILLIS);
 
 bool alarmEnabled = false;
 bool alarmActive = false;
@@ -66,6 +73,14 @@ void blinkOff() {
 void alarmOn3() {
     timerAlarmOn.start();
     // Serial.println("SIREN3!");
+}
+
+void blinkOn() {
+
+}
+
+void blinkOff() {
+    
 }
 
 void alarmOn() {
@@ -167,7 +182,6 @@ void setup() {
     // delay(100);
     digitalWrite(PIN_LIGHT, LOW);
     digitalWrite(PIN_SIREN, LOW);
-
 
     // pinMode(PIN_MUTE, INPUT_PULLUP);
     // mute.attach(PIN_MUTE);
