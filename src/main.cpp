@@ -42,11 +42,6 @@ IPAddress server(172, 17, 2, 172);
 // IPAddress gw(192, 168, 0, 1);
 // IPAddress dnsserver(192, 168, 0, 1);
 
-void blinkOn();
-void blinkOff();
-
-Ticker timerBlink1(blinkOn, 1, 200, MILLIS);
-Ticker timerBlinkOff(blinkOff, 1, 100, MILLIS);
 
 bool alarmEnabled = false;
 bool alarmActive = false;
